@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ELYES ACADEMY | العلوم الطبيعية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* 1. نظام الألوان والسمات */
+        :root { 
+            --primary: #10b981; 
+            --accent: #f59e0b; 
+            --bg: #f8fafc; 
+            --card-bg: #ffffff;
+            --text: #1e293b; 
+            --dark: #0f172a;
+        }
+
+        body.dark-mode {
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #f8fafc;
+        }
+
+        * { box-sizing: border-box; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        body { background-color: var(--bg); color: var(--text); margin: 0; font-family: 'Poppins', 'Cairo', sans-serif; overflow-x: hidden; }
+
+        /* 2. لوحة التحكم العائمة (Theme Controller) */
+        .theme-controller { position: fixed; top: 25px; left: 25px; z-index: 10000; font-family: 'Cairo', sans-serif; }
+        #theme-master-btn {
+            width: 55px; height: 55px; border-radius: 50%; background: var(--primary); color: white; border: 3px solid #ffffff;
+            cursor: pointer; font-size: 24px; box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+        .theme-panel {
+            position: absolute; top: 70px; left: 0; background: var(--card-bg); border-radius: 25px; padding: 20px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15); width: 250px; border: 1px solid rgba(255,255,255,0.1); display: none;
+        }
+        .theme-panel.active { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .panel-section { margin-bottom: 20px; }
+        .panel-section span { display: block; margin-bottom: 12px; font-weight: bold; }
+        .mode-group { display: flex; background: rgba(0,0,0,0.05); border-radius: 15px; padding: 5px; }
+        .mode-btn { flex: 1; border: none; padding: 10px; border-radius: 12px; cursor: pointer; background: transparent; color: var(--text); font-weight: bold; }
+        .mode-btn.active { background: var(--card-bg); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .color-options { display: flex; gap: 10px; justify-content: center; }
+        .color-dot { width: 32px; height: 32px; border-radius: 50%; cursor: pointer; border: 3px solid #ffffff; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+
+        /* 3. الهيدر واللوجو */
+        header { 
+            background: linear-gradient(135deg, var(--dark) 0%, #064e3b 100%); 
+            color: white; padding: 60px 20px; text-align: center; border-bottom: 5px solid var(--accent);
+            clip-path: polygon(0 0, 100% 0, 100% 90%, 0% 100%);
+        }
+        .logo-wrapper { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .main-logo rect:first-child { fill: var(--primary); }
+        .brand-name { font-size: 3.5rem; font-weight: 800; letter-spacing: 3px; margin: 10px 0; text-shadow: 2px 2px 10px rgba(0,0,0,0.3); }
+
+        /* 4. الحاوية والبطاقات */
+        .container { max-width: 1100px; margin: -50px auto 50px; padding: 0 20px; }
+        .section-header { 
+            background: var(--primary); color: white; padding: 12px 25px; border-radius: 12px; 
+            margin: 40px 0 20px; display: inline-block; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; }
+        .card { 
+            background: var(--card-bg); padding: 30px; border-radius: 20px; cursor: pointer; 
+            border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 10px 20px rgba(0,0,0,0.05); text-align: right;
+            border-right: 6px solid var(--primary);
+        }
+        .card:hover { transform: translateY(-10px); border-color: var(--primary); }
+        .card h3 { margin: 0 0 10px; color: var(--primary); font-size: 1.4rem; font-family: 'Cairo'; }
+
+        /* 5. عارض المحتوى */
+        #viewer-container { display: none; animation: fadeInUp 0.5s ease; }
+        #viewer { background: var(--card-bg); padding: 45px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.15); }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+        .back-btn { background: var(--primary); color: white; border: none; padding: 12px 25px; border-radius: 12px; cursor: pointer; font-weight: bold; margin-bottom: 30px; font-family: 'Cairo'; }
+        
+        #lesson-content { line-height: 2.2; font-size: 1.25rem; }
+
+        /* 6. أزرار التواصل */
+        .social-widget { position: fixed; bottom: 30px; right: 20px; display: flex; flex-direction: row-reverse; align-items: center; gap: 12px; z-index: 1000000; }
+        #toggle-social { width: 55px; height: 55px; border-radius: 50%; background: var(--primary); color: white; border: 3px solid white; cursor: pointer; font-size: 24px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; }
+        .social-links { display: flex; gap: 10px; }
+        .social-links.hidden { display: none; }
+        .s-btn { padding: 12px 20px; border-radius: 50px; text-decoration: none; color: white; font-weight: bold; font-size: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .tg { background: #0088cc; } .fb { background: #1877f2; }
+
+        footer { background: var(--dark); color: white; padding: 50px; text-align: center; margin-top: 100px; }
+        /* تحسين المظهر للهواتف */
+@media (max-width: 600px) {
+    body {
+        font-size: 14px; /* تصغير الخط العام قليلاً */
+    }
+    .content-card {
+        padding: 15px; /* تقليل الحواف لزيادة مساحة الكتابة */
+    }
+    h1 {
+        font-size: 1.5rem !important; /* تصغير العناوين الكبيرة */
+    }
+    h2 {
+        font-size: 1.2rem !important;
+    }
+    table {
+        font-size: 12px; /* تصغير خط الجداول لتناسب الشاشة */
+        display: block;
+        overflow-x: auto; /* السماح بتمرير الجدول يميناً ويساراً إذا كان عريضاً */
+        white-space: nowrap;
+    }
+}
+
+    </style>
+</head>
+<body>
+
+<div class="theme-controller">
+    <button id="theme-master-btn" onclick="toggleThemePanel()">🎨</button>
+    <div id="theme-panel" class="theme-panel">
+        <div class="panel-section">
+            <span>الوضع البصري</span>
+            <div class="mode-group">
+                <button class="mode-btn" id="light-btn" onclick="setTheme('light')">☀️ فاتح</button>
+                <button class="mode-btn" id="dark-btn" onclick="setTheme('dark')">🌙 داكن</button>
+            </div>
+        </div>
+        <div class="panel-section">
+            <span>لون السمة</span>
+            <div class="color-options">
+                <div class="color-dot" style="background:#10b981" onclick="changeColor('#10b981')"></div>
+                <div class="color-dot" style="background:#2563eb" onclick="changeColor('#2563eb')"></div>
+                <div class="color-dot" style="background:#ef4444" onclick="changeColor('#ef4444')"></div>
+                <div class="color-dot" style="background:#f59e0b" onclick="changeColor('#f59e0b')"></div>
+                <div class="color-dot" style="background:#8b5cf6" onclick="changeColor('#8b5cf6')"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<header>
+    <div class="logo-wrapper">
+        <svg width="80" height="80" viewBox="0 0 100 100" class="main-logo">
+            <rect width="100" height="100" rx="22"/>
+            <rect x="25" y="25" width="50" height="7" rx="3.5" fill="white"/>
+            <rect x="25" y="46" width="50" height="7" rx="3.5" fill="white"/>
+            <rect x="25" y="67" width="50" height="7" rx="3.5" fill="white"/>
+            <path d="M72 32 Q85 50 72 68" stroke="var(--accent)" stroke-width="7" stroke-linecap="round" fill="none"/>
+        </svg>
+        <div class="brand-name">ELYES</div>
+    </div>
+    <div style="opacity:0.9; font-size: 1.3rem; font-weight: bold; font-family:'Cairo';">موسوعة العلوم الطبيعية والحياة</div>
+</header>
+
+<div class="container" id="hub">
+    <h1 style="text-align: center; font-family: 'Cairo'; color: var(--text); border-bottom: 2px solid var(--primary); padding-bottom: 10px; margin-bottom: 30px;">المجال 02:
+    
+    </h1>
+
+    <div class="section-group">
+        <div class="section-header">🔬 الوحدة 01: الخلية وحدة بنيوية</div>
+        <div class="grid">
+            <div class="card" onclick="show('cell_light')">
+                <h3>1. دراسة الخلية بالمجهر الضوئي</h3>
+                <p>فحص الخلايا الحيوانية والنباتية وبدائيات النوى.</p>
+            </div>
+            <div class="card" onclick="show('cell_electron')">
+                <h3>2. دراسة الخلية بالمجهر الإلكتروني</h3>
+                <p>ما فوق بنية الخلية: العضيات (ميتوكوندريا، غولجي، ريبوزومات).</p>
+            </div>
+            <div class="card" onclick="show('cell_genetic')">
+                <h3>3. وحدة مكونات الدعامة الوراثية</h3>
+                <p>تموضع المادة الوراثية عند حقيقيات وبدائيات النوى.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-group">
+        <div class="section-header" style="background: var(--accent);">🧬 الوحدة 02: الوحدة البنيوية للـ ADN</div>
+        <div class="grid">
+            <div class="card" onclick="show('adn1')">
+                <h3>1. التركيب الكيميائي للـ ADN</h3>
+                <p>تحليل نتائج الإماهة الكلية والجزئية ومكونات النيكليوتيدة.</p>
+            </div>
+            <div class="card" onclick="show('adn2')">
+                <h3>2. بنية جزيئة الـ ADN</h3>
+                <p>نموذج واطسن وكريك (اللولب المضاعف) والروابط الهيدروجينية.</p>
+            </div>
+            <div class="card" onclick="show('adn3')">
+                <h3>3. تماثل بنية الـ ADN</h3>
+                <p>الدعامة الجزيئية للمعلومة الوراثية وتجربة التحويل الوراثي.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-group">
+        <div class="section-header" style="background: #64748b;">🛠️ منهجية ومصطلحات</div>
+        <div class="grid">
+            <div class="card" onclick="show('method')">
+                <h3>منهجية تحليل الوثائق</h3>
+                <p>كيفية التعامل مع المنحنيات والجداول العلمية في الامتحان.</p>
+            </div>
+            <div class="card" onclick="show('vocab')">
+                <h3>المصطلحات العلمية</h3>
+                <p>القاموس الشامل للمصطلحات (عربي - فرنسي) الواردة في المذكرة.</p>
+            </div>
+        </div>
+    </div>
+  
+</div>
+
+
+
+<div class="container" id="viewer-container">
+    <div id="viewer">
+        <button class="back-btn" onclick="hide()">🔙 العودة للقائمة</button>
+        <div id="lesson-content"></div>
+    </div>
+</div>
+
+<div class="social-widget">
+    <button id="toggle-social" onclick="toggleSocial()">💬</button>
+    <div id="social-links" class="social-links hidden">
+        <a href="https://t.me/sciences2asc" target="_blank" class="s-btn tg">Telegram</a>
+        <a href="https://www.facebook.com/share/17wEZUb6mq/" target="_blank" class="s-btn fb">Facebook</a>
+    </div>
+</div>
+
+<footer>
+    <p>© 2026 ELYES ACADEMY | جميع الحقوق محفوظة</p>
+</footer>
+
+<script>
+    // نظام التحكم في السمات
+    function toggleThemePanel() { document.getElementById('theme-panel').classList.toggle('active'); }
+    
+    function setTheme(mode) {
+        const isDark = (mode === 'dark');
+        document.body.classList.toggle('dark-mode', isDark);
+        document.getElementById('dark-btn').classList.toggle('active', isDark);
+        document.getElementById('light-btn').classList.toggle('active', !isDark);
+        localStorage.setItem('sc-theme', mode);
+    }
+
+    function changeColor(color) {
+        document.documentElement.style.setProperty('--primary', color);
+        localStorage.setItem('sc-accent', color);
+    }
+    const database = {
+        // الدرس الأول: المجهر الضوئي (البنية)
+        cell_light: { 
+            content: `
+                <div style="line-height:1.8; font-family:'Cairo', sans-serif;">
+                    <h1 style="color:var(--primary); border-bottom:3px solid var(--accent); padding-bottom:10px;">الوحدة 01: الخلية وحدة بنيوية</h1>
+                    
+                    <p>تعتبر <b>الخلية</b> الوحدة البنيوية الأساسية لجميع الكائنات الحية، وهي أصغر وحدة قادرة على القيام بالوظائف الحيوية.</p>
+
+                    <h2 style="color:var(--primary);">1. المخطط البنائي المشترك:</h2>
+                    <p>أظهرت الدراسة بالمجهر الضوئي أن جميع الخلايا، رغم تنوعها، تخضع لمخطط بنائي موحد يتكون من:</p>
+                    <ul>
+                        <li><b>غشاء هيولي:</b> يحيط بالخلية ويحمي مكوناتها.</li>
+                        <li><b>هيولى (سيتوبلازم):</b> مادة نصف سائلة تسبح فيها المكونات.</li>
+                        <li><b>مادة وراثية:</b> تحمل المعلومات الوراثية للكائن الحي.</li>
+                    </ul>
+
+                    <h2 style="color:var(--primary);">2. تصنيف الكائنات الحية:</h2>
+                    <ul>
+                        <li><b>حقيقيات النوى (Eucaryotes):</b> كائنات مادتها الوراثية محاطة بغلاف نووي، مما يشكل "نواة حقيقية" (مثل النبات والحيوان).</li>
+                        <li><b>بدائيات النوى (Procaryotes):</b> كائنات مادتها الوراثية تسبح حرة في الهيولى، وتفتقر لغلاف نووي (مثل البكتيريا).</li>
+                    </ul>
+
+                    <h2 style="color:var(--primary);">3. الفرق بين الخلية النباتية والحيوانية:</h2>
+                    <p>بالمجهر الضوئي، تتميز <b>الخلية النباتية</b> بوجود:</p>
+                    <ul style="list-style-type: square;">
+                        <li><b>جدار سيلولوزي:</b> يمنحها شكلاً هندسياً منتظماً وصلابة.</li>
+                        <li><b>فجوة عصارية نامية:</b> كبيرة الحجم تشغل معظم حيز الخلية.</li>
+                        <li><b>الصانعات الخضراء:</b> المسؤولة عن اللون الأخضر وعملية التركيب الضوئي.</li>
+                    </ul>
+                    <div style="margin-top:30px; border:2px dashed var(--primary); padding:20px; border-radius:15px; background:#fff;">
+    <h2 style="color:var(--primary); text-align:center;">📍 مخطط حصيلة: وحدة بناء الكائن الحي</h2>
+    <div style="display:flex; justify-content:space-around; align-items:center; flex-wrap:wrap; gap:10px; color:#333;">
+        <div style="border:1px solid #ddd; padding:10px; border-radius:8px;">خلايا حيوانية</div>
+        <div style="font-size:20px;">+</div>
+        <div style="border:1px solid #ddd; padding:10px; border-radius:8px;">خلايا نباتية</div>
+        <div style="font-size:20px;">+</div>
+        <div style="border:1px solid #ddd; padding:10px; border-radius:8px;">بكتيريا</div>
+    </div>
+    <p style="text-align:center; font-size:25px; margin:10px 0;">⬇️</p>
+    <div style="background:var(--primary); color:white; padding:15px; text-align:center; border-radius:10px; font-weight:bold;">
+        مخطط بنائي مشترك (غشاء + هيولة + مادة وراثية) = وحدة الكائنات الحية
+    </div>
+</div>
+                    <p style="background:#fff7ed; padding:10px; border-radius:8px; color:#9a3412; font-weight:bold;">
+” وَعَلَّمَكَ مَا لَمْ تَكُنْ تَعْلَمُ”،«سورة النساء: الآية 113»
+                    </p>
+                </div>
+            ` 
+        },
+
+        // الدرس الثاني: المجهر الإلكتروني (ما فوق البنية)
+        cell_electron: { 
+            content: `
+                <div style="line-height:1.8; font-family:'Cairo', sans-serif;">
+                    <h1 style="color:var(--primary); border-bottom:3px solid var(--accent); padding-bottom:10px;">ما فوق بنية الخلية (المجهر الإلكتروني)</h1>
+                    
+                    <p>كشف المجهر الإلكتروني عن تفاصيل دقيقة للعضيات لا يمكن رؤيتها بالمجهر الضوئي، وأثبت أن الخلية ذات <b>بنية حجيرية</b>.</p>
+
+                    <h2 style="color:var(--primary);">1. ميزة البنية الحجيرية:</h2>
+                    <p>تتميز خلايا حقيقيات النوى بنظام غشائي داخلي (عضيات محاطة بغشاء واحد أو مضاعف)، مما يقسم الخلية إلى <b>حجيرات</b> مستقلة تسمح بحدوث وظائف كيميائية مختلفة في آن واحد.</p>
+                    
+
+                    <h2 style="color:var(--primary);">2. العضيات الأساسية ووظائفها:</h2>
+                    <table style="width:100%; border-collapse: collapse; margin: 15px 0; background: var(--card-bg); color: var(--text);">
+                        <tr style="background: var(--primary); color: white;">
+                            <th style="padding:10px; border: 1px solid #ddd;">العضية</th>
+                            <th style="padding:10px; border: 1px solid #ddd;">الوصف والوظيفة</th>
+                        </tr>
+                        <tr>
+                            <td style="padding:10px; border: 1px solid #ddd;"><b>النواة</b></td>
+                            <td style="padding:10px; border: 1px solid #ddd;">محاطة بغلاف نووي ذو ثقوب، هي مقر المعلومة الوراثية.</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:10px; border: 1px solid #ddd;"><b>الميتوكوندريا</b></td>
+                            <td style="padding:10px; border: 1px solid #ddd;">عضية مزدوجة الغشاء، مقر الأكسدة التنفسية وإنتاج الطاقة (ATP).</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:10px; border: 1px solid #ddd;"><b>الشبكة الهيولية</b></td>
+                            <td style="padding:10px; border: 1px solid #ddd;">(المحببة) مقر تركيب البروتين بوجود الريبوزومات.</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:10px; border: 1px solid #ddd;"><b>جهاز غولجي</b></td>
+                            <td style="padding:10px; border: 1px solid #ddd;">مقر نضج وتغليف وإفراز البروتينات المنتجة.</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:10px; border: 1px solid #ddd;"><b>الصانعة الخضراء</b></td>
+                            <td style="padding:10px; border: 1px solid #ddd;">(نباتية فقط) مقر عملية التركيب الضوئي.</td>
+                        </tr>
+                    </table>
+                    <div style="margin-top:30px; border:2px dashed var(--primary); padding:20px; border-radius:15px; background:#f9fafb;">
+    <h2 style="color:var(--primary); text-align:center;">📍 مخطط حصيلة: البنية الحجيرية</h2>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; color:#333;">
+        <div style="background:#e0f2fe; padding:10px; border-radius:8px; text-align:center;">
+            <b>حجيرات إنتاج الطاقة</b><br>ميتوكوندريا / صانعات
+        </div>
+        <div style="background:#f0fdf4; padding:10px; border-radius:8px; text-align:center;">
+            <b>حجيرات تركيب البروتين</b><br>شبكة محببة / جهاز غولجي
+        </div>
+    </div>
+    <div style="background:var(--accent); color:white; padding:10px; text-align:center; border-radius:10px; margin-top:10px;">
+        نظام غشائي داخلي ⬅️ تخصص وظيفي ⬅️ بنية حجيرية
+    </div>
+</div>
+                    <p style="background:#fff7ed; padding:10px; border-radius:8px; color:#9a3412; font-weight:bold;">
+”وَلَقَدْ آتَيْنَا دَاوُودَ وَسُلَيْمَانَ عِلْمًا ۖ وَقَالَا الْحَمْدُ لِلَّهِ الَّذِي فَضَّلَنَا عَلَىٰ كَثِيرٍ مِّنْ عِبَادِهِ الْمُؤْمِنِينَ* وَوَرِثَ سُلَيْمَانُ دَاوُودَ ۖ وَقَالَ يَا أَيُّهَا النَّاسُ عُلِّمْنَا مَنطِقَ الطَّيْرِ وَأُوتِينَا مِن كُلِّ شَيْءٍ ۖ إِنَّ هَٰذَا لَهُوَ الْفَضْلُ الْمُبِينُ”
+سورة النمل، الآيات 15، 16
+                    </p>
+                </div>
+            ` 
+        },
+
+        // الدرس الثالث: الدعامة الوراثية (الصبغيات)
+        cell_genetic: { 
+            content: `
+                <div style="line-height:1.8; font-family:'Cairo', sans-serif;">
+                    <h1 style="color:var(--primary); border-bottom:2px solid var(--accent); padding-bottom:10px;">وحدة مكونات الدعامة الوراثية</h1>
+                    
+                    <h2 style="color:var(--primary);">1. تموضع المادة الوراثية:</h2>
+                    <p>تتمركز المادة الوراثية عند حقيقيات النوى داخل <b>النواة</b> على شكل صبغيات (كروموسومات). عند بدائيات النوى، تكون عبارة عن صبغي حلقي يسبح في الهيولى.</p>
+
+                    <h2 style="color:var(--primary);">2. الطبيعة الكيميائية للصبغي:</h2>
+                    <p>أظهرت التحاليل أن الصبغي يتكون من مادتين كيميائيتين:</p>
+                    <ul>
+                        <li><b>حمض نووي ADN:</b> وهو الدعامة الجزيئية للمعلومة الوراثية.</li>
+                        <li><b>بروتينات (هيستونات):</b> بروتينات قاعدية يلتف حولها خيط الـ ADN ليتكدس ويأخذ شكل الصبغي.</li>
+                    </ul>
+                    
+
+                    <div style="background: rgba(16, 185, 129, 0.1); padding: 20px; border-radius: 15px; border-right: 5px solid var(--primary); margin: 20px 0;">
+                        <strong>الخلاصة الكلية:</strong> بما أن الـ ADN هو الدعامة الوراثية المشتركة بين جميع الكائنات الحية (بكتيريا، نبات، حيوان)، فهذا يثبت <b>وحدة الأصل الحي</b> لجميع الكائنات.
+                    </div>
+                    <div style="margin-top:30px; border:2px dashed var(--primary); padding:20px; border-radius:15px; background:#fff;">
+    <h2 style="color:var(--primary); text-align:center;">📍 مخطط حصيلة: من الصبغي إلى الـ ADN</h2>
+    <div style="text-align:center; color:#333;">
+        <p>النواة ⬅️ الكروماتين ⬅️ الصبغيات</p>
+        <p style="font-size:20px;">⬇️</p>
+        <div style="border:2px solid var(--primary); display:inline-block; padding:10px; border-radius:10px;">
+            <b>الصبغي = ADN + هيستونات</b>
+        </div>
+        <p style="margin-top:10px; color:var(--primary); font-weight:bold;">الـ ADN هو الدعامة الجزيئية للمعلومة الوراثية</p>
+    </div>
+</div>
+                    <p style="background:#fff7ed; padding:10px; border-radius:8px; color:#9a3412; font-weight:bold;">
+“وَلَمَّا بَلَغَ أَشُدَّهُ وَاسْتَوَىٰ آتَيْنَاهُ حُكْمًا وَعِلْمًا ۚ وَكَذَٰلِكَ نَجْزِي الْمُحْسِنِينَ”. سورة القصص، الآيات 14.
+                    </p>
+
+                </div>
+            ` 
+        },
+
+        // 1. التركيب الكيميائي للـ ADN
+        adn1: { 
+            content: `
+                <div style="line-height:1.8; font-family:'Cairo', sans-serif;">
+                    <h1 style="color:var(--primary); border-bottom:3px solid var(--accent); padding-bottom:10px;">التركيب الكيميائي للـ ADN</h1>
+                    
+                    <h2 style="color:var(--primary);">أ. نتائج الإماهة الكلية:</h2>
+                    <p>باستعمال حمض الكلور (HCl) وفي درجة حرارة عالية، يعطي الـ ADN ثلاثة مكونات:</p>
+                    <ul>
+                        <li><b>حمض الفسفور:</b> H3PO4.</li>
+                        <li><b>سكر خماسي:</b> ريبوز منقوص الأكسجين (C5H10O4).</li>
+                        <li><b>أربع قواعد آزوتية:</b> نوعان بيرييميدينية (C, T) ونوعان بيورينية (A, G).</li>
+                    </ul>
+
+                    <h2 style="color:var(--primary);">ب. نتائج الإماهة الجزئية:</h2>
+                    <p>باستعمال إنزيم ADNase، نتحصل على وحدات بنائية تدعى <b>النيكليوتيدات</b>.</p>
+                    <p><b>النيكليوتيدة:</b> هي الوحدة البنائية للـ ADN وتتكون من (سكر + حمض فسفور + قاعدة آزوتية واحدة).</p>
+                    <div style="background:#f8fafc; padding:15px; border-radius:10px; border:1px solid #ddd; margin:10px 0;">
+                        <b>خلاصة:</b> يتكون الـ ADN من تتالي عدد كبير من النيكليوتيدات التي تختلف حسب القواعد الآزوتية الأربعة (A, G, C, T).
+                    </div>
+                                        <p style="background:#fff7ed; padding:10px; border-radius:8px; color:#9a3412; font-weight:bold;">
+“هُوَ الَّذِي بَعَثَ فِي الْأُمِّيِّينَ رَسُولًا مِّنْهُمْ يَتْلُو عَلَيْهِمْ آيَاتِهِ وَيُزَكِّيهِمْ وَيُعَلِّمُهُمُ الْكِتَابَ وَالْحِكْمَةَ وَإِن كَانُوا مِن قَبْلُ لَفِي ضَلَالٍ مُّبِينٍ”، «سورة الجمعة: الآية 2»
+                    </p>
+                </div>
+            ` 
+        },
+
+        // 2. بنية جزيئة الـ ADN
+        adn2: { 
+            content: `
+                <div style="line-height:1.8; font-family:'Cairo', sans-serif;">
+                    <h1 style="color:var(--primary); border-bottom:3px solid var(--accent); padding-bottom:10px;">بنية جزيئة الـ ADN (نموذج واطسن وكريك)</h1>
+                    
+                    <h2 style="color:var(--primary);">الخصائص البنيوية:</h2>
+                    <ul>
+                        <li><b>اللولب المضاعف:</b> يتكون الـ ADN من سلسلتين من متعدد النيكليوتيدات ملتفتين التفاافاً حلزونياً مضاعفاً.</li>
+                        <li><b>توازي متضاد:</b> السلسلتان متوازيتان وفي اتجاهين متعاكسين (5'->3' و 3'->5').</li>
+                        <li><b>الروابط الهيدروجينية:</b> تستقر البنية بروابط تنشأ بين القواعد المتكاملة (رابطتان بين A=T، وثلاث روابط بين C≡G).</li>
+                    </ul>
+
+                    <h2 style="color:var(--primary);">قواعد شارغاف (التكامل):</h2>
+                    <p>توجد نسب ثابتة في جزيئة الـ ADN حيث دائماً: <b>A=T</b> و <b>C=G</b>، وبالتالي النسبة (A+G)/(C+T) = 1.</p>
+                    <div style="background:rgba(16,185,129,0.1); padding:15px; border-radius:10px; border-right:5px solid var(--primary);">
+                         تعتبر بنية الـ ADN بنية منتظمة ومستقرة بفضل الروابط الهيدروجينية وتكامل القواعد.
+                    </div>
+                    <div style="margin-top:30px; border:2px dashed var(--primary); padding:20px; border-radius:15px; background:#fefce8;">
+    <h2 style="color:#854d0e; text-align:center;">📍 المخطط النهائي لبنية الـ ADN</h2>
+    <div style="display:flex; flex-direction:column; gap:10px; align-items:center; color:#451a03;">
+        <div style="border:1px solid #ca8a04; padding:5px 15px; border-radius:20px;">فسفور + سكر + قاعدة = نيكليوتيدة</div>
+        <p>⬇️</p>
+        <div style="border:1px solid #ca8a04; padding:5px 15px; border-radius:20px;">تتالي نيكليوتيدات = سلسلة</div>
+        <p>⬇️</p>
+        <div style="border:2px solid #ca8a04; padding:10px; border-radius:10px; background:white;">
+            سلسلتان متعاكستان + روابط هيدروجينية (A=T / C≡G) = لولب مضاعف
+        </div>
+    </div>
+</div>
+                    <p style="background:#fff7ed; padding:10px; border-radius:8px; color:#9a3412; font-weight:bold;">
+” قُلْ هَلْ يَسْتَوِي الَّذِينَ يَعْلَمُونَ وَالَّذِينَ لَا يَعْلَمُونَ إِنَّمَا يَتَذَكَّرُ أُولُو الْأَلْبَابِ”، «سورة الزمر: الآية 9».
+                    </p>
+                </div>
+            ` 
+        },
+
+        // 3. تماثل بنية الـ ADN
+        adn3: { 
+            content: `
+                <div style="line-height:1.8; font-family:'Cairo', sans-serif;">
+                    <h1 style="color:var(--primary); border-bottom:3px solid var(--accent); padding-bottom:10px;">تماثل بنية الـ ADN عند الكائنات الحية</h1>
+                    
+                    <h2 style="color:var(--primary);">أ. تجربة التحويل الوراثي (Transgénèse):</h2>
+                    <p>عند نقل مورثة من كائن (معطي) إلى كائن آخر مختلف تماماً (مستقبل)، فإن الكائن المستقبل يكتسب صفة جديدة ويقوم بتركيب بروتين غريب عنه.</p>
+
+                    <h2 style="color:var(--primary);">ب. الاستنتاج من التماثل:</h2>
+                    <ul>
+                        <li>جزيئة الـ ADN لها <b>بنية متماثلة</b> عند جميع الكائنات الحية (نبات، حيوان، بكتيريا).</li>
+                        <li>الـ ADN هو "لغة عالمية"؛ المورثة لها نفس المعنى عند جميع الأنواع.</li>
+                        <li>هذا التماثل يؤكد مرة أخرى على <b>وحدة الأصل</b> لجميع الكائنات الحية.</li>
+                    </ul>
+                                        <p style="background:#fff7ed; padding:10px; border-radius:8px; color:#9a3412; font-weight:bold;">
+“اقْرَأْ بِاسْمِ رَبِّكَ الَّذِي خَلَقَ * خَلَقَ الْإِنْسَانَ مِنْ عَلَقٍ * اقْرَأْ وَرَبُّكَ الْأَكْرَمُ * الَّذِي عَلَّمَ بِالْقَلَمِ * عَلَّمَ الْإِنْسَانَ مَا لَمْ يَعْلَمْ”
+«سورة العلق: الآيات 1-5»
+                    </p>
+                </div>
+            ` 
+        },
+        // 4. منهجية الإجابة العلمية (الاستدلال العلمي)
+        method: { 
+            content: `
+                <div style="line-height:1.8; font-family:'Cairo', sans-serif; direction:rtl;">
+                    <h1 style="color:#1e293b; border-bottom:3px solid #f59e0b; padding-bottom:10px;">دليل المنهجية للعلامة الكاملة 💯</h1>
+
+
+                    <h2 style="color:#d97706;">أولاً: استغلال الوثيقة (تحليل + استنتاج)</h2>
+                    <div style="padding-right:15px; border-right:4px solid #f59e0b; margin-bottom:20px;">
+                        <p><b>1. التعريف بالوثيقة:</b> (إجباري) ابدأ بـ: "تمثل الوثيقة (منحنى/جدول/رسم) حيث نلاحظ..."</p>
+                        <p><b>2. الملاحظة المنظمة (التحليل):</b> قسم الوثيقة إلى فترات أو مناطق. استخدم كلمات دقيقة: (تزايد، تناقص، ثبات، وجود، غياب). 
+                        <br><i>⚠️ تنبيه: لا تشرح "لماذا" في هذه المرحلة! فقط صف ما تراه.</i></p>
+                        <p><b>3. الاستنتاج:</b> (إجباري) اخرج بالمعلومة "المستترة" من الوثيقة. ابدأ بـ: "ومنه نستنتج أن..."</p>
+                    </div>
+
+                    <h2 style="color:#d97706;">ثانياً: التفسير (مرحلة الربط)</h2>
+                    <div style="padding-right:15px; border-right:4px solid #f59e0b; margin-bottom:20px;">
+                        <p>هنا تجيب على سؤال <b>"لماذا؟"</b>. اربط الملاحظة بالمعلومات العلمية التي درستها.</p>
+                        <p>استخدم روابط منطقية: "وهذا راجع لـ..." ، "مما يدل على..." ، "بسبب..."</p>
+                    </div>
+
+                    <h2 style="color:#d97706;">ثالثاً: المصادقة على الفرضية (إذا طُلب منك)</h2>
+                    <p>بعد تحليل الوثائق، قارن استنتاجاتك بالفرضية المقترحة في بداية التمرين: 
+                    <br>"وهذا ما يؤكد صحة الفرضية القائلة بـ..."</p>
+
+                    <h2 style="color:#d97706;">رابعاً: النص العلمي (التركيب)</h2>
+                    <div style="background:#f8fafc; padding:15px; border-radius:10px; border:1px solid #e2e8f0;">
+                        <p>للحصول على 2/2 في النص العلمي:</p>
+                        <ul>
+                            <li><b>المقدمة:</b> سياق عام ينتهي بـ <b>طرح المشكلة العلمية</b> (سؤال ينتهي بعلامة ؟).</li>
+                            <li><b>العرض:</b> إجابة مفصلة ومنظمة باستخدام الكلمات المفتاحية (ADN، بنية، صبغي، نكليوتيدة...).</li>
+                            <li><b>الخاتمة:</b> ملخص موجز أو إجابة مباشرة ومختصرة للمشكلة.</li>
+                        </ul>
+                    </div>
+
+                    <div style="margin-top:20px; text-align:center;">
+                         
+                    </div>
+
+                    <button onclick="window.scrollTo(0,0); document.getElementById('content').innerHTML='<p style=\'text-align:center; color:#666;\'>اختر درساً من القائمة أعلاه لبدء المراجعة</p>'" style="display:block; width:100%; padding:12px; margin-top:30px; background:#64748b; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:bold;">مَن نفَّس عن مؤمنٍ كربةً من كرب الدنيا نفَّس الله عنه كربةً من كرب يوم القيامة</button>
+                                        
+                    <p style="background:#fff7ed; padding:10px; border-radius:8px; color:#9a3412; font-weight:bold;">
+                    ﴿ يَرْفَعِ اللَّهُ الَّذِينَ آمَنُوا مِنْكُمْ وَالَّذِينَ أُوتُوا الْعِلْمَ دَرَجَاتٍ وَاللَّهُ بِمَا تَعْمَلُونَ خَبِيرٌ ﴾ [المجادلة: 11]
+                    </p>
+                </div>
+            ` 
+        },
+
+        // 5. المصطلحات العلمية (شرح مفصل)
+        vocab: { 
+            content: `
+                <div style="line-height:1.8; font-family:'Cairo', sans-serif;">
+                    <h1 style="color:#64748b; border-bottom:3px solid #94a3b8; padding-bottom:10px;">قاموس المصطلحات العلمية والشروحات</h1>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
+                        
+                        <div style="background:#f8fafc; padding:15px; border-radius:10px; border-right:5px solid #64748b;">
+                            <b style="color:var(--primary);">الخلية (La Cellule):</b>
+                            <p>هي الوحدة البنيوية والوظيفية الأساسية لجميع الكائنات الحية، وهي أصغر حيز حيوي يمكنه القيام بالوظائف الحيوية (تغذية، تنفس، تكاثر).</p>
+                        </div>
+
+                        <div style="background:#f8fafc; padding:15px; border-radius:10px; border-right:5px solid #64748b;">
+                            <b style="color:var(--primary);">حقيقيات النوى (Eucaryotes):</b>
+                            <p>كائنات حية تتميز بوجود غلاف نووي يحيط بالمادة الوراثية ويفصلها عن الهيولة، كما تحتوي خلاياها على عضيات غشائية متخصصة.</p>
+                        </div>
+
+                        <div style="background:#f8fafc; padding:15px; border-radius:10px; border-right:5px solid #64748b;">
+                            <b style="color:var(--primary);">بدائيات النوى (Procaryotes):</b>
+                            <p>كائنات حية (مثل البكتيريا) تكون مادتها الوراثية حرة في الهيولة ولا يحيط بها غلاف نووي، وتفتقر للعضيات الغشائية مثل الميتوكوندريا.</p>
+                        </div>
+
+                        <div style="background:#f8fafc; padding:15px; border-radius:10px; border-right:5px solid #64748b;">
+                            <b style="color:var(--primary);">البنية الحجيرية:</b>
+                            <p>ميزة تنفرد بها حقيقيات النوى، حيث تقسم الأغشية الداخلية الخلية إلى حجرات (عضيات) مستقلة، مما يسمح بحدوث تفاعلات كيميائية مختلفة في وقت واحد.</p>
+                        </div>
+
+                        <div style="background:#f8fafc; padding:15px; border-radius:10px; border-right:5px solid #64748b;">
+                            <b style="color:var(--primary);">النيكليوتيدة (Nucléotide):</b>
+                            <p>هي الوحدة البنائية لجزيئة الـ ADN، وتتكون من اتحاد ثلاث جزيئات: سكر خماسي (ريبوز منقوص الأكسجين)، حمض الفسفور، وقاعدة آزوتية واحدة.</p>
+                        </div>
+
+                        <div style="background:#f8fafc; padding:15px; border-radius:10px; border-right:5px solid #64748b;">
+                            <b style="color:var(--primary);">التحويل الوراثي (Transgénèse):</b>
+                            <p>تقنية مخبرية تتمثل في نقل مورثة من كائن معطٍ إلى كائن مستقبل، بهدف إكسابه صفة وراثية جديدة، وهي دليل على تماثل جزيئة الـ ADN عند الكائنات.</p>
+                        </div>
+
+                        <div style="background:#f8fafc; padding:15px; border-radius:10px; border-right:5px solid #64748b;">
+                            <b style="color:var(--primary);">الإماهة (Hydrolyse):</b>
+                            <p>عملية كيميائية تهدف لتفكيك الجزيئات الكبيرة إلى وحداتها البنائية باستعمال الماء والإنزيمات أو الأحماض (مثل تفكيك الـ ADN إلى نيكليوتيدات).</p>
+                        </div>
+
+                        <div style="background:#f8fafc; padding:15px; border-radius:10px; border-right:5px solid #64748b;">
+                            <b style="color:var(--primary);">الصبغي (Chromosome):</b>
+                            <p>بنية خيطية تظهر أثناء الانقسام الخلوي، تتكون كيميائياً من خيط ADN ملتف حول بروتينات الهيستونات، وهو حامل المعلومة الوراثية.</p>
+                        </div>
+
+                    </div>
+                                        <p style="background:#fff7ed; padding:10px; border-radius:8px; color:#9a3412; font-weight:bold;">
+“وَقُلْ رَبِّ زِدْنِي عِلْمًا”، «سورة طه: الآية 114»
+                    </p>
+                </div>
+            ` 
+        }
+
+    };
+
+
+
+
+    function show(id) {
+        document.getElementById('hub').style.display = 'none';
+        document.getElementById('viewer-container').style.display = 'block';
+        document.getElementById('lesson-content').innerHTML = database[id].content;
+        window.scrollTo(0,0);
+    }
+
+    function hide() {
+        document.getElementById('hub').style.display = 'block';
+        document.getElementById('viewer-container').style.display = 'none';
+    }
+
+    function toggleSocial() {
+        const links = document.getElementById('social-links');
+        links.classList.toggle('hidden');
+        document.getElementById('toggle-social').innerText = links.classList.contains('hidden') ? '💬' : '✖';
+    }
+
+    window.onload = () => {
+        const savedTheme = localStorage.getItem('sc-theme') || 'light';
+        const savedColor = localStorage.getItem('sc-accent');
+        setTheme(savedTheme);
+        if(savedColor) changeColor(savedColor);
+    };
+</script>
+</body>
+</html>
